@@ -1,0 +1,63 @@
+#+Title: Chapter 2.6
+
+#+BEGIN_SRC lisp
+(defun random-elt (choices)
+  (elt choices (random (length choices))))
+
+(defun rule-rhs (rule)
+  (rest (rest rule)))
+
+(defun rewrites (category)
+  (rule-rhs (assoc category *grammar*)))
+
+(defun generate-tree (phrase)
+ (cond ((listp phrase)
+        (mapcar 'generate-tree phrase))
+       ((rewrite phrase)
+        (cons phrase
+              (generte-tree (random-elt (rewrite phrase)))))
+       (t (list phrase))))
+
+#+END_SRC
+
+#+BEGIN_SRC lisp
+(defparameter *simple-grammar*
+'((sentence -> (noun-phrase verb-phrase))
+  (Noun-phrase -> (Article Noun))
+  (verb-phrase -> (Verb Noun-phrase))
+  (Article -> the a)
+  (Noun -> man ball woman table)
+  (Verb -> hit took saw liked)))
+
+(defvar *grammar* *simple-grammar*)
+
+(defun mappend (fn the-list)
+ (if (null the-list)
+      nil
+      (append (funcall fn (first the-list))
+      (mappend fn (rest the-list)))))
+
+(defun rule-rhs (rule)
+  (rest (rest rule)))
+
+(defun rewrites (category)
+  (rule-rhs (assoc category *grammar*)))
+
+(defun generate-all (phrase)
+ (cond ((null phrase) (list nil))
+       ((listp phrase)
+        (combine-all (generate-all (first phrase))
+                     (generate-all (rest phrase))))
+       ((rewrites phrase)
+        (mappend 'generate-all (rewrites phrase)))
+       (t (list (list phrase)))))
+
+(defun combine-all (xlist ylist)
+  (mappend #'(lambda (y)
+              (mapcar #'(lambda (x) (append x y)) xlist))
+           ylist))
+#+END_SRC
+
+#+RESULTS:
+: COMBINE-ALL
+
